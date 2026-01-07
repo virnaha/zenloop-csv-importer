@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import Papa from 'papaparse';
 import { FileUpload } from '@/components/FileUpload';
 import { ProgressDisplay } from '@/components/ProgressDisplay';
@@ -26,12 +27,35 @@ const initialStatus: ProcessingStatus = {
 };
 
 export default function Home() {
+  const { data: session } = useSession();
   const [file, setFile] = useState<File | null>(null);
   const [surveyHashId, setSurveyHashId] = useState('');
   const [status, setStatus] = useState<ProcessingStatus>(initialStatus);
 
   // Store parsed data for "Proceed Anyway" functionality
   const parsedDataRef = useRef<{ headers: string[]; data: CsvRow[] } | null>(null);
+
+  // User header component
+  const UserHeader = () => (
+    <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+      <div className="flex items-center gap-2">
+        {session?.user?.image && (
+          <img
+            src={session.user.image}
+            alt=""
+            className="w-8 h-8 rounded-full"
+          />
+        )}
+        <span className="text-sm text-gray-600">{session?.user?.email}</span>
+      </div>
+      <button
+        onClick={() => signOut()}
+        className="text-sm text-gray-500 hover:text-gray-700"
+      >
+        Sign out
+      </button>
+    </div>
+  );
 
   const reset = useCallback(() => {
     setFile(null);
@@ -216,6 +240,7 @@ export default function Home() {
       <main className="min-h-screen bg-gray-100 py-8">
         <div className="container mx-auto px-4 max-w-2xl">
           <div className="bg-white rounded-lg shadow-lg p-6">
+            <UserHeader />
             <div className="flex items-center mb-6">
               <svg
                 className="w-8 h-8 text-blue-600 mr-3"
@@ -249,6 +274,7 @@ export default function Home() {
     <main className="min-h-screen bg-gray-100 py-8">
       <div className="container mx-auto px-4 max-w-2xl">
         <div className="bg-white rounded-lg shadow-lg p-6">
+          <UserHeader />
           <div className="flex items-center mb-6">
             <svg
               className="w-8 h-8 text-blue-600 mr-3"
